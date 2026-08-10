@@ -25,7 +25,21 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Forms\Components\Section::make('Category Information')
+                    ->schema([
+                        // image
+                        Forms\Components\FileUpload::make('image')
+                            ->label('Category Image')
+                            ->placeholder('Upload Category Image')
+                            ->image()
+                            ->directory('categories')
+                            ->maxSize(1024)
+                            ->required(),
+                        Forms\Components\TextInput::make('name')
+                            ->label('Category Name')
+                            ->placeholder('Enter Category Name')
+                            ->required()
+                    ]),
             ]);
     }
 
@@ -33,7 +47,12 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\ImageColumn::make('image')
+                    // ->label('Category Image')
+                    ->circular(),
+                Tables\Columns\TextColumn::make('name')
+                    // ->label('Category Name')
+                    ->searchable()
             ])
             ->filters([
                 //
