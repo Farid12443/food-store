@@ -45,15 +45,15 @@ class UserResource extends Resource
                         Forms\Components\TextInput::make('email')
                             ->label('Email')
                             ->placeholder('Email')
-                            ->unique(ignorable: fn ($record) => $record)
+                            ->unique(ignorable: fn($record) => $record)
                             ->required(),
 
                         //password
                         Forms\Components\TextInput::make('password')
                             ->label('Password')
                             ->placeholder('Password')
-                            ->dehydrateStateUsing(fn ($state) => $state ? bcrypt($state) : null)
-                            ->dehydrated(fn ($state) => filled($state)) // hanya mengubah password jika field diisi
+                            ->dehydrateStateUsing(fn($state) => $state ? bcrypt($state) : null)
+                            ->dehydrated(fn($state) => filled($state)) // hanya mengubah password jika field diisi
                             ->password(),
 
                     ])
