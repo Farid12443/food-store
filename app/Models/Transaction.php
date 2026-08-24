@@ -16,7 +16,7 @@ class Transaction extends Model
         'full_address',
         'invoice',
         'weight',
-        'total',
+        'total_price',
         'status',
         'snap_token',
     ];

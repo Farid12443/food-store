@@ -21,8 +21,8 @@ class TransactionChart extends ChartWidget
                 start: now()->startOfMonth(),
                 end: now()->endOfMonth()
             )
-            ->perDay() // Hitung data per bulan
-            ->sum('total'); // Hitung total transaksi per bulan berdasarkan 'total'
+            ->perDay() // Hitung data per hari
+            ->sum('total_price');
 
         // Return data untuk chart
         return [

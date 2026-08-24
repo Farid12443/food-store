@@ -38,7 +38,7 @@ class ViewTransaction extends ViewRecord
                 Card::make([
                     TextEntry::make('customer.name')->label('Customer Name'),
                     TextEntry::make('customer.email')->label('Email Address'),
-                    TextEntry::make('address')->label('Address'),
+                    TextEntry::make('full_address')->label('Address'),
                 ])->columns(3),
 
                 // Ongkos Kirim
@@ -50,7 +50,7 @@ class ViewTransaction extends ViewRecord
 
                 // Transaction Details
                 Card::make([
-                    RepeatableEntry::make('TransactionDetails')
+                    RepeatableEntry::make('transactionDetails')
                         ->label('Items Details')
                         ->schema([
                             ImageEntry::make('product.image')->label('Product Image')->circular()->width(100)->height(100),
@@ -65,7 +65,7 @@ class ViewTransaction extends ViewRecord
                     // Buat container grid untuk alignment
                     Grid::make(1)
                         ->schema([
-                            TextEntry::make('total')
+                            TextEntry::make('total_price')
                                 ->label('Grand Total')
                                 ->numeric(decimalPlaces: 0)
                                 ->money('IDR', locale: 'id')

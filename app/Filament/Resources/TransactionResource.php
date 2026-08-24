@@ -45,7 +45,7 @@ class TransactionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('invoice')->searchable(),
                 Tables\Columns\TextColumn::make('customer.name')->searchable(),
-                Tables\Columns\TextColumn::make('total')->money('IDR', locale: 'id'),
+                Tables\Columns\TextColumn::make('total_price')->money('IDR', locale: 'id'),
                 Tables\Columns\TextColumn::make('status')->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'warning',
