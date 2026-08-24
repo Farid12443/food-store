@@ -21,6 +21,11 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationGroup = 'Master Data';
 
+    public static function getNavigationSort(): ?int
+    {
+        return 1;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
