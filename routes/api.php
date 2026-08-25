@@ -146,3 +146,6 @@ Route::group(['prefix' => 'public'], function () {
     Route::post('/checkout', [Public\CheckoutController::class, 'store'])->name('public.checkout');
 
 });
+
+//route callback midtrans
+Route::post('/callback', Public\CallbackController::class)->name('public.callback');
