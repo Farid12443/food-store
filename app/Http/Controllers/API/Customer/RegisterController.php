@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\API\Customer;
+namespace App\Http\Controllers\Api\Customer;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Models\Customer;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
 {
@@ -14,36 +14,38 @@ class RegisterController extends Controller
      */
     public function __invoke(Request $request)
     {
+        //set validation
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required|email|unique:customers',
-            'password' => 'required|min:8|confirmed',
+            'name'     => 'required',
+            'email'    => 'required|email|unique:customers',
+            'password' => 'required|min:8|confirmed'
         ]);
 
+        //if validation fails
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors(),
-            ], 422);
+            return response()->json($validator->errors(), 422);
         }
 
+        //create customer
         $customer = Customer::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => bcrypt($request->password)
         ]);
 
-        if ($customer) {
+        //return response JSON user is created
+        if($customer) {
             return response()->json([
-                'success' => true,
-                'message' => 'Register Berhasil',
-                'data' => $customer,
+                'success'   => true,
+                'message'   => 'Register Berhasil',
+                'data'      => $customer,
             ], 201);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Register Gagal',
-            ], 409);
         }
+
+        //return JSON process insert failed
+        return response()->json([
+            'success' => false,
+            'message' => 'Register Gagal',
+        ], 409);
     }
 }
