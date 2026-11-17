@@ -2,52 +2,72 @@
 
 namespace App\Http\Controllers\Api\Public;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class RajaOngkirController extends Controller
 {
     /**
-     * searchDestination
-     *
-     * @param  mixed $request
-     * @return void
+     * Search destination
      */
     public function searchDestination(Request $request)
     {
-        $response = Http::withHeaders([
-            'key' => config('rajaongkir.api_key')
-        ])->get('https://rajaongkir.komerce.id/api/v1/destination/domestic-destination', [
-            'search' => $request->search,
-            'limit'  => 100,
-            'offset' => 0
+        $validated = $request->validate([
+            'search' => 'required|string|min:3',
         ]);
 
-        return response()->json($response['data']);
+        $response = Http::withHeaders([
+            'key' => config('rajaongkir.api_key'),
+        ])->get(
+            config('rajaongkir.base_url') . '/destination/domestic-destination',
+            [
+                'search' => $validated['search'],
+                'limit'  => 100,
+                'offset' => 0,
+            ]
+        );
+
+        if ($response->failed()) {
+            return response()->json([
+                'message' => 'Gagal mencari destinasi',
+                'error' => $response->json(),
+            ], $response->status());
+        }
+
+        return response()->json($response->json('data'));
     }
 
     /**
-     * checkOngkir
-     *
-     * @param  mixed $request
-     * @return void
+     * Check shipping cost
      */
     public function checkOngkir(Request $request)
     {
-        //Fetch Rest API
-        $response = Http::withHeaders([
-            //api key rajaongkir
-            'key'           => config('rajaongkir.api_key')
-        ])->asForm()->post('https://rajaongkir.komerce.id/api/v1/calculate/domestic-cost', [
-
-            //send data
-            'origin'      => 46174, // ID desa "Bandung" Diwek Jombang
-            'destination' => $request->destination,
-            'weight'      => $request->weight,
-            'courier'     => $request->courier
+        $validated = $request->validate([
+            'destination' => 'required|integer',
+            'weight'      => 'required|integer|min:1',
+            'courier'     => 'required|string',
         ]);
 
-        return response()->json($response['data']);
+        $response = Http::withHeaders([
+            'key' => config('rajaongkir.api_key'),
+        ])->asForm()->post(
+            config('rajaongkir.base_url') . '/calculate/domestic-cost',
+            [
+                'origin'      => 46174,
+                'destination' => $validated['destination'],
+                'weight'      => $validated['weight'],
+                'courier'     => $validated['courier'],
+            ]
+        );
+
+        if ($response->failed()) {
+            return response()->json([
+                'message' => 'Gagal menghitung ongkir',
+                'error' => $response->json(),
+            ], $response->status());
+        }
+
+        return response()->json($response->json('data'));
     }
 }
