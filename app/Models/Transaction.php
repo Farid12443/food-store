@@ -21,6 +21,22 @@ class Transaction extends Model
         'snap_token',
     ];
 
+    /**
+     * Map a Midtrans transaction_status (+ fraud_status) to our local status.
+     * Returns null when the status should not change anything.
+     */
+    public static function mapMidtransStatus(?string $transactionStatus, ?string $fraudStatus = null): ?string
+    {
+        return match ($transactionStatus) {
+            'capture'    => ($fraudStatus === null || $fraudStatus === 'accept') ? 'success' : 'pending',
+            'settlement' => 'success',
+            'pending'    => 'pending',
+            'expire'     => 'expired',
+            'deny', 'cancel', 'failure' => 'failed',
+            default      => null,
+        };
+    }
+
     public function transactionDetails()
     {
         return $this->hasMany(TransactionDetail::class);

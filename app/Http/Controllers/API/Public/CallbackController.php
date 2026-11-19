@@ -5,79 +5,45 @@ namespace App\Http\Controllers\Api\Public;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 
 class CallbackController extends Controller
 {
     /**
-     * Handle the incoming request.
+     * Handle Midtrans payment notification (webhook).
      */
     public function __invoke(Request $request)
     {
-        $payload       = $request->getContent();
-        $notification = json_decode($payload);
+        $notification = json_decode($request->getContent());
 
-        $serverKey = config()->get('midtrans.server_key', env('MIDTRANS_SERVER_KEY'));
-        $validsignatureKey = hash("sha512", $notification->order_id . $notification->status_code . $notification->gross_amount . $serverKey);
+        Log::info('Midtrans callback received', ['payload' => $request->getContent()]);
 
-        if ($notification->signature_key != $validsignatureKey) {
-            return response(['message' => 'Invalid signature'], 403);
+        if (!$notification || !isset($notification->order_id, $notification->status_code, $notification->gross_amount, $notification->signature_key)) {
+            return response()->json(['message' => 'Invalid payload'], 400);
         }
 
-        $transaction = $notification->transaction_status;
-        $type        = $notification->payment_type;
-        $orderId     = $notification->order_id;
+        $serverKey         = config('midtrans.server_key');
+        $validSignatureKey = hash('sha512', $notification->order_id . $notification->status_code . $notification->gross_amount . $serverKey);
 
-        //data transaction
-        $data_transaction = Transaction::where('invoice', $orderId)->first();
-
-        if ($transaction == 'capture') {
-
-            // For credit card transaction, we need to check whether transaction is challenge by FDS or not
-            if ($type == 'credit_card') {
-
-                //nothing
-
-            }
-        } elseif ($transaction == 'settlement') {
-
-            /**
-             * update invoice to success
-             */
-            $data_transaction->update([
-                'status' => 'success'
-            ]);
-        } elseif ($transaction == 'pending') {
-
-            /**
-             * update invoice to pending
-             */
-            $data_transaction->update([
-                'status' => 'pending'
-            ]);
-        } elseif ($transaction == 'deny') {
-
-            /**
-             * update invoice to failed
-             */
-            $data_transaction->update([
-                'status' => 'failed'
-            ]);
-        } elseif ($transaction == 'expire') {
-
-            /**
-             * update invoice to expired
-             */
-            $data_transaction->update([
-                'status' => 'expired'
-            ]);
-        } elseif ($transaction == 'cancel') {
-
-            /**
-             * update invoice to failed
-             */
-            $data_transaction->update([
-                'status' => 'failed'
-            ]);
+        if (!hash_equals($validSignatureKey, $notification->signature_key)) {
+            return response()->json(['message' => 'Invalid signature'], 403);
         }
+
+        $transaction = Transaction::where('invoice', $notification->order_id)->first();
+
+        if (!$transaction) {
+            return response()->json(['message' => 'Transaction not found'], 404);
+        }
+
+        $status = Transaction::mapMidtransStatus(
+            $notification->transaction_status ?? null,
+            $notification->fraud_status ?? null
+        );
+
+        if ($status) {
+            $transaction->update(['status' => $status]);
+        }
+
+        return response()->json(['message' => 'OK', 'status' => $transaction->status]);
     }
 }
